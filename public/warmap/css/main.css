@@ -1,0 +1,97 @@
+html, body {
+	height: 100%;
+	margin: 0;
+	background-color: #080202;
+	color: #666;
+}
+
+body {
+	background: -webkit-linear-gradient(#200505 0%, #3A0404 100%);
+}
+
+body.peace {
+	background: -webkit-linear-gradient(#05181F 0%, #042B3B 100%);
+}
+
+body.peace .main-wrapper {
+	background-image: url('/img/background-peace.png');
+}
+
+.main-wrapper {
+	position: absolute;
+	width: 100%;
+	top: 0;
+	bottom: 0;
+	background-image: url('/img/background-war.png');
+	background-size: 100% auto;
+	background-position: center top;
+	background-repeat: no-repeat;
+	overflow: hidden;
+}
+
+.partials, .labels, .grid, .random, .infobar {
+	position: absolute;
+	width: 100%;
+	left: 0;
+	top: 0;
+}
+
+.main-wrapper .grid {
+	opacity: .86;
+	
+}
+
+.main-wrapper .labels {
+	opacity: .6;
+	
+}
+
+.main-wrapper .partials {
+	opacity: .8;
+}
+
+.main-wrapper .partials > img {
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 100%; 
+}
+
+
+.main-wrapper .partials > img.glow {
+	-webkit-animation: glow 4s infinite;
+	-moz-animation: glow 4s infinite;
+}
+
+.main-wrapper .random {
+	opacity: .18;
+}
+
+.random .snippet {
+	position: absolute;
+	font: 10px arial;
+	color: white;
+}
+
+.main-wrapper .infobar {
+	top: auto;
+	bottom: 0;
+}
+
+@keyframes glow {
+    0% { opacity: 1; }
+    50% { opacity: .5; }
+    100% { opacity: 1; }
+}
+
+@-webkit-keyframes glow {
+    0% { opacity: 1; }
+    50% { opacity: .5; }
+    100% { opacity: 1; }
+}
+
+@-moz-keyframes glow {
+    0% { opacity: 1; }
+    50% { opacity: .5; }
+    100% { opacity: 1; }
+}

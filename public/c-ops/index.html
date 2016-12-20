@@ -2,14 +2,41 @@
 <html>
 
 <head>
+  <meta charset="UTF8">
   <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico" />
-  <title>C-OPS</title>
+  <title>InfoSec - C-ops</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 
-    <body>
-      <h1>Operantions ROOM</h1>
+<body class='cops'>
+
+    <div class="main-wrapper">
+
+      <h1>Warmap C-ops</h1>
+
+      <span class="notifications"></span>
+
+      <input type="button" value="off" id="off" class="half half-right" />
+      <input type="button" value="on" id="on" class="half" />
+      <input type="button" value="complete" id="complete" />
+      <input type="button" value="reset all" id="reset" />
+      <hr />
+
+      <label>F78</label><input type="checkbox" value="F78" class="region" />
+      <label>H22</label><input type="checkbox" value="H22" class="region" />
+      <label>A45</label><input type="checkbox" value="A45" class="region" />
+      <label>Y63</label><input type="checkbox" value="Y63" class="region" />
+      <label>S74</label><input type="checkbox" value="S74" class="region" />
+      <label>U20</label><input type="checkbox" value="U20" class="region" />
+      <label>B52</label><input type="checkbox" value="B52" class="region" />
+      <label>W41</label><input type="checkbox" value="W41" class="region" />
+      <label>Q96</label><input type="checkbox" value="Q96" class="region" />
+      <label>G78</label><input type="checkbox" value="G78" class="region" />
+
+      </div>
     </body>
 
+    <script type="text/javascript" src="./js/jquery-3.1.1.min.js"></script>
     <script src="./js/app.js"></script>
 
 </html>

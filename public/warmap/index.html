@@ -2,15 +2,46 @@
 <html>
 
 <head>
+  <meta charset="UTF8">
   <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico" />
-  <title>WARMAP</title>
+  <title>InfoSec - Warmap</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="./css/main.css">
 </head>
 
     <body>
-      <h1>WARMAP!!!</h1>
+      <div class="main-wrapper">
+
+  			<div class="random" id="random-a"></div>
+
+  			<!-- World pieces -->
+  			<div class="partials">
+  				<img id='p1' src="/img/red-1.png" />
+  				<img id='p2' src="/img/red-2.png" />
+  				<img id='p3' src="/img/red-3.png" />
+  				<img id='p4' src="/img/red-4.png" />
+  				<img id='p5' src="/img/red-5.png" />
+  				<img id='p6' src="/img/red-6.png" />
+  				<img id='p7' src="/img/red-7.png" />
+  				<img id='p8' src="/img/red-8.png" />
+  				<img id='p9' src="/img/red-9.png" />
+  				<img id='p10' src="/img/red-10.png" />
+  			</div>
+
+  			<div class="random" id="random-b"></div>
+
+  			<img class="grid" src="./img/overlay-lines.png" />
+  			<img class="labels" src="./img/overlay-labels.png" />
+
+  			<!-- Display -->
+  			<img class='infobar infobar-war' src='./img/infobar-war.png' />
+  			<img class='infobar infobar-peace' src='./img/infobar-peace.png' />
+
+  		</div>
     </body>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="./js/jquery-3.1.1.min.js"></script>
     <script src="./js/app.js"></script>
 
 </html>
