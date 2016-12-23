@@ -16,3 +16,9 @@ module.exports.setUserCountries = function(users, countriesGroup) {
   }
   return false;
 }
+
+module.exports.validatePassword = function(countries, password) {
+  return Object.keys(countries).some(function(code) {
+    return password.indexOf(code) !== -1;
+  });
+}

@@ -2,143 +2,109 @@
 
 function init() {
   var socket = io();
+  var sections = ["F78", "H22", "A45", "Y63", "S74", "U20", "B52", "W41", "Q96", "G78"];
   var countries_state = [];
 
+  $('.infobar-peace').toggle();
+
   socket.on('user:connected', function(data) {
-    if(data.error){
-      console.log(data);
-    } else {
-      console.log(data);
-      // var request_id = localStorage.getItem("request_id") || data.id;
-      // localStorage.setItem("request_id", request_id);
-      socket.emit('user:joined', {"id": data.id, "role":"map"});
-    }
+    console.log('user:connected', data);
+    // var request_id = localStorage.getItem("request_id") || data.id;
+    // localStorage.setItem("request_id", request_id);
+    socket.emit('user:joined', {"id": data.id, "role":"map"});
   });
 
   socket.on('app:start', function(data) {
-    if(data.error){
-      console.log(data);
+    console.log('app:start', data);
+    resetMap();
+    for (var n=1; n<11; n++)
+      setTimeout(function(n){ $('.partials #p'+n).addClass('glow'); }, Math.round(Math.random()*4000), n);
+  });
+
+  socket.on('app:reset', function(data) {
+    console.log('app:reset', data);
+    resetMap();
+  });
+
+  socket.on('map:show', function(data) {
+    console.log('map:show', data);
+    if(data.state) {
+      showMap(true);
     } else {
-      console.log(data);
+      showMap(false);
     }
   });
 
   socket.on('map:unlock', function(data) {
-    if(data.error){
-      console.log(data);
+    console.log('map:unlock', data);
+    if(data.sections) {
+      console.log('map:unlock:sections', data.sections);
+      data.sections.forEach(function(section) {
+        setSectionState(section, data.state);
+      });
     } else {
-      console.log(data);
+      console.log('map:unlock:section', data.section);
       setSectionState(data.section, data.state);
     }
   });
 
   function setSectionState(section, state) {
-    switch (section) {
-      case "F78":
-        if (state)	{
-          $("#p1").attr('src', '/img/blue-1.png');
-          countries_state.push(1);
-        } else {
-          $('#p1').attr('src', './img/red-1.png');
-          countries_state.pop();
-        }
-        break;
-      case "H22":
-        if (state)	{
-          $("#p2").attr('src', '/img/blue-2.png');
-          countries_state.push(1);
-        } else {
-          $('#p2').attr('src', './img/red-2.png')
-          countries_state.pop();
-        };
-        break;
-      case "A45":
-        if (state)	{
-          $("#p3").attr('src', '/img/blue-3.png');
-          countries_state.push(1);
-        } else {
-          $('#p3').attr('src', './img/red-3.png');
-          countries_state.pop();
-        }
-        break;
-      case "Y63":
-        if (state)	{
-          $("#p4").attr('src', '/img/blue-4.png');
-          countries_state.push(1);
-        } else {
-          $('#p4').attr('src', './img/red-4.png');
-          countries_state.pop();
-        }
-        break;
-      case "S74":
-        if (state)	{
-          $("#p5").attr('src', '/img/blue-5.png');
-          countries_state.push(1);
-        } else {
-          $('#p5').attr('src', './img/red-5.png');
-          countries_state.pop();
-        }
-        break;
-      case "U20":
-        if (state)	{
-          $("#p6").attr('src', '/img/blue-6.png');
-          countries_state.push(1);
-        } else {
-          $('#p6').attr('src', './img/red-6.png');
-          countries_state.pop();
-        }
-        break;
-      case "B52":
-        if (state)	{
-          $("#p7").attr('src', '/img/blue-7.png');
-          countries_state.push(1);
-        } else {
-          $('#p7').attr('src', './img/red-7.png');
-          countries_state.pop();
-        }
-        break;
-      case "W41":
-        if (state)	{
-          $("#p8").attr('src', '/img/blue-8.png');
-          countries_state.push(1);
-        } else {
-          $('#p8').attr('src', './img/red-8.png');
-          countries_state.pop();
-        }
-        break;
-      case "Q96":
-        if (state)	{
-          $("#p9").attr('src', '/img/blue-9.png');
-          countries_state.push(1);
-        } else {
-          $('#p9').attr('src', './img/red-9.png');
-          countries_state.pop();
-        }
-        break;
-      case "G78":
-        if (state)	{
-          $("#p10").attr('src', '/img/blue-10.png');
-          countries_state.push(1);
-        } else {
-          $('#p10').attr('src', './img/red-10.png');
-          countries_state.pop();
-        }
-        break;
-      default:
-        console.error("Invalid section:", section);
-        break;
+    var index = sections.findIndex(function(code){
+      return code == section;
+    }) + 1;
+    if (state)	{
+      $('#p' + index).attr('src', '/img/blue-' + index + '.png');
+      if(countries_state.length < 10) countries_state.push(1);
+    } else {
+      $('#p' + index).attr('src', './img/red-' + index + '.png');
+      countries_state.pop();
     }
-    var totalUnlocked = countries_state.reduce(function(a, b) {
-      return a + b;
-    });
 
-    console.log(totalUnlocked);
+    var totalUnlocked = 0;
+    if(countries_state.length) {
+      totalUnlocked = countries_state.reduce(function(a, b) {
+        return a + b;
+      });
+    }
+
+    console.log(section, index, countries_state, totalUnlocked, state);
+
     if(totalUnlocked == 10) {
+      $('.infobar-peace, .infobar-war').toggle(400);
       $('body').addClass('peace');
     } else {
       $('body').removeClass('peace');
     }
   }
+
+  function resetMap() {
+    sections.forEach(function(section) {
+      setSectionState(section, false);
+    });
+  }
+
+  function showMap(show) {
+    if(show) {
+      $('.disconnected').hide();
+    } else {
+      $('.disconnected').show();
+    }
+  }
+
+  setInterval(function() {
+  	// erratic
+  	if (Math.round(Math.random())) {
+  		// erase
+  		if (Math.round(Math.random()*2) == 2)
+        $('.main-wrapper #random-' + (Math.round(Math.random()) ?  'a' : 'b')).html("");
+  		// erratic again
+      var html = "<div class='snippet' style='left:" + (Math.random()*98) + "%; top:" + Math.round(100+Math.random()*920) + "px;'>" + Math.random().toString(36).substring(2, 12) + "</div>";
+      console.log(html);
+  		$('#random-' + (Math.round(Math.random()) ? 'a' : 'b')).append(html);
+  	}
+  }, 150);
+
+  // showMap(true);
 }
 
 window.onload = function() {

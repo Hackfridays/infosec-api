@@ -15,9 +15,12 @@ const io = require('socket.io')(http);
 const countriesGroup = require('./_lib/country_groups');
 const countries = require('./_lib/countries');
 
+const waitTime = 5000; // wait 5 seconds before sending password feedback
+
 let users = {};
 let map = {};
 let running = false;
+let startTime;
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -37,12 +40,35 @@ app.get('/start', function(req, res) {
     started = util.setUserCountries(users, countriesGroup);
   }
   if(started) {
-    res.status(200).json({"started": true});
     running = true;
-    io.emit('app:start', {"start": true});
+    startTime = new Date();
+    io.emit('app:start', {"start": true, "timer": startTime});
+    res.status(200).json({"started": true});
   } else {
     res.status(500).json({"started": false});
   }
+});
+
+/**
+* reset the app and countdown
+*/
+app.get('/reset', function(req, res) {
+  running = false;
+  io.emit('app:reset', {"reset": true});
+  res.status(200).json({"reset": true});
+});
+
+/**
+* set a map has complete
+*/
+app.get('/complete', function(req, res) {
+  running = false;
+  let data = {"sections": Object.keys(countries), "state": true};
+  io.to(map["id"]).emit('map:unlock', data);
+  Object.keys(users).forEach(function(user) {
+    io.to(user).emit('app:password', {"valid": true});
+  });
+  res.status(200).json({"message": "Map was set as complete"});
 });
 
 /**
@@ -53,6 +79,16 @@ app.post('/setmap', function(req, res) {
   io.to(map["id"]).emit('map:unlock', data);
   let state = data.state ? "enabled" : "disabled";
   res.status(200).json({"message": "Map " + countries[data.section] + " is " + state});
+});
+
+/**
+* set a map enabled or disabled
+*/
+app.post('/showmap', function(req, res) {
+  let data = req.body;
+  io.to(map["id"]).emit('map:show', data);
+  let state = data.state ? "enabled" : "disabled";
+  res.status(200).json({"message": "Map is " + state});
 });
 
 /**
@@ -73,17 +109,34 @@ io.on('connection', function(socket) {
   socket.on('user:joined', function(data) {
     if(!users.hasOwnProperty(data.id) && data.role && data.role == "user")
       users[data.id] = {};
-    if(data.role && data.role == "map") {
+    if(data.role && data.role == "map")
       map["id"] = data.id;
-    }
     log.info(users, data);
-    io.emit('user:joined', JSON.stringify(data));
+    io.emit('user:joined', data);
+    if(data.id && running)
+      io.to(data.id).emit('app:start', {"start": true, "timer": startTime});
+
   });
 
   socket.on('map:unlock', function(data) {
-    if(data.section) {
+    log.info('map:unlock', data);
+    if(data.id && data.password && users[data.id]["countries"] != null) {
       log.info(users, data);
-      io.to(map["id"]).emit('map:unlock', data);
+      let valid = util.validatePassword(countries, data.password);
+      let result = {};
+      if(valid) {
+        users[data.id]["locked"] = false;
+        result["sections"] = users[data.id]["countries"];
+        result["state"] = true;
+        setTimeout(function(){
+          log.info("emit to", map["id"], 'map:unlock', result);
+          io.to(map["id"]).emit('map:unlock', result);
+        }, waitTime);
+      }
+      setTimeout(function(){
+        log.info("emit to", data.id, 'app:password', {"valid": valid});
+        io.to(data.id).emit('app:password', {"valid": valid});
+      }, waitTime);
     }
   });
 
