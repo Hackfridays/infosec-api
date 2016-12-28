@@ -14,7 +14,7 @@ body.peace {
 }
 
 body.peace .main-wrapper {
-	background-image: url('/img/background-peace.png');
+	background-image: url('../img/background-peace.png');
 }
 
 .main-wrapper {
@@ -22,14 +22,14 @@ body.peace .main-wrapper {
 	width: 100%;
 	top: 0;
 	bottom: 0;
-	background-image: url('/img/background-war.png');
+	background-image: url('../img/background-war.png');
 	background-size: 100% auto;
 	background-position: center top;
 	background-repeat: no-repeat;
 	overflow: hidden;
 }
 
-.partials, .labels, .grid, .random, .infobar {
+.partials, .labels, .grid, .random, .infobar-container {
 	position: absolute;
 	width: 100%;
 	left: 0;
@@ -73,11 +73,12 @@ body.peace .main-wrapper {
 	color: white;
 }
 
-.main-wrapper .infobar {
+.main-wrapper .infobar-container {
 	top: auto;
 	bottom: 0;
 }
 
+/*start loading animation*/
 .disconnected {
 	background: radial-gradient(circle farthest-corner at center, #3C4B57 0%, #1d1f20 100%);
 	display: block;
@@ -155,6 +156,49 @@ body.peace .main-wrapper {
     transform: rotateX(35deg) rotateY(55deg) rotateZ(360deg);
   }
 }
+
+/*end loading animation*/
+/*start infobar*/
+.infobar {
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(30, 30, 30, 0.8);
+  border-radius: 10px;
+  text-align: center;
+	margin: 15px;
+	animation: pulse 1s linear infinite;
+}
+.infobar .title {
+  color: #FFDDDD;
+  font-family: Arial, Helvetica, sans-serif;
+  text-shadow: 0px 0px 8px #FFDDDD;
+	font-weight: 500;
+}
+.infobar .info {
+  color: #FFFFFF;
+  font-variant: small-caps;
+  font-family: Arial, Helvetica, sans-serif;
+  text-shadow: 0px 0px 8px #FFFFFF;
+	font-weight: 500;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: .7; }
+    100% { opacity: 1; }
+}
+
+@-webkit-keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: .7; }
+    100% { opacity: 1; }
+}
+
+@-moz-keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: .7; }
+    100% { opacity: 1; }
+}
+/*end infobar*/
 
 @keyframes glow {
     0% { opacity: 1; }

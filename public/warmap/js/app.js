@@ -5,7 +5,7 @@ function init() {
   var sections = ["F78", "H22", "A45", "Y63", "S74", "U20", "B52", "W41", "Q96", "G78"];
   var countries_state = [];
 
-  $('.infobar-peace').toggle();
+  $('.infobar-peace').hide();
 
   socket.on('user:connected', function(data) {
     console.log('user:connected', data);
@@ -24,6 +24,11 @@ function init() {
   socket.on('app:reset', function(data) {
     console.log('app:reset', data);
     resetMap();
+  });
+
+  socket.on('map:setTitle', function(data) {
+    console.log('map:setTitle', data);
+    $(".title").html(data.title);
   });
 
   socket.on('map:show', function(data) {
@@ -70,14 +75,19 @@ function init() {
     console.log(section, index, countries_state, totalUnlocked, state);
 
     if(totalUnlocked == 10) {
-      $('.infobar-peace, .infobar-war').toggle(400);
+      $('.infobar-war').hide();
       $('body').addClass('peace');
+      $('.infobar-peace').show("bounce", 2000);
     } else {
+      $('.infobar-peace').hide();
+      $('.infobar-war').show();
       $('body').removeClass('peace');
     }
   }
 
   function resetMap() {
+    $('.infobar-peace').hide();
+    $('.infobar-war').show();
     sections.forEach(function(section) {
       setSectionState(section, false);
     });
@@ -98,13 +108,17 @@ function init() {
   		if (Math.round(Math.random()*2) == 2)
         $('.main-wrapper #random-' + (Math.round(Math.random()) ?  'a' : 'b')).html("");
   		// erratic again
-      var html = "<div class='snippet' style='left:" + (Math.random()*98) + "%; top:" + Math.round(100+Math.random()*920) + "px;'>" + Math.random().toString(36).substring(2, 12) + "</div>";
-      console.log(html);
+      var imgHeight = $(".grid").height();
+      var margin = Math.round(imgHeight*0.0926), height = Math.round(imgHeight*0.8519);
+      var html = "<div class='snippet' style='left:" + (Math.random()*98) + "%; top:" + Math.round(margin+Math.random()*height) + "px;'>" + Math.random().toString(36).substring(2, 12) + "</div>";
   		$('#random-' + (Math.round(Math.random()) ? 'a' : 'b')).append(html);
   	}
   }, 150);
 
   // showMap(true);
+  for (var n=1; n<11; n++)
+    setTimeout(function(n){ $('.partials #p'+n).addClass('glow'); }, Math.round(Math.random()*4000), n);
+
 }
 
 window.onload = function() {
