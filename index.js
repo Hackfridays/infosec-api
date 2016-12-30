@@ -72,7 +72,7 @@ app.get('/reset', function(req, res) {
   appState.running = false;
   unlockedCountries = [];
   io.emit('app:reset', {"reset": true});
-  res.status(200).json({"reset": true});
+  res.status(200).json({"reset": true, "message": "App was reset."});
 });
 
 /**
@@ -81,7 +81,7 @@ app.get('/reset', function(req, res) {
 app.get('/complete', function(req, res) {
   appState.running = false;
   let data = {"sections": Object.keys(countries), "state": true};
-  io.to(map["id"]).emit('map:unlock', data);
+  if(map["id"]) io.to(map["id"]).emit('map:unlock', data);
   unlockedCountries = Object.keys(countries);
   Object.keys(users).forEach(function(user) {
     users[user]["locked"] = false;
@@ -95,7 +95,7 @@ app.get('/complete', function(req, res) {
 */
 app.post('/setmap', function(req, res) {
   let data = req.body;
-  io.to(map["id"]).emit('map:unlock', data);
+  if(map["id"]) io.to(map["id"]).emit('map:unlock', data);
   let state = data.state ? "enabled" : "disabled";
   if(data.state) {
     addCountry(data.section);
@@ -120,7 +120,7 @@ app.post('/setCountdownTimer', function(req, res) {
 */
 app.post('/showmap', function(req, res) {
   let data = req.body;
-  io.to(map["id"]).emit('map:show', data);
+  if(map["id"]) io.to(map["id"]).emit('map:show', data);
   appState.showmap = data.state;
   let state = data.state ? "enabled" : "disabled";
   res.status(200).json({"message": "Map is " + state});
@@ -132,7 +132,7 @@ app.post('/showmap', function(req, res) {
 app.post('/setMapTitle', function(req, res) {
   let data = req.body;
   data = JSON.parse(JSON.stringify(data));
-  io.to(map["id"]).emit('map:setTitle', data);
+  if(map["id"]) io.to(map["id"]).emit('map:setTitle', data);
   res.status(200).json({"message": "Map title set to " + data.title});
 });
 
@@ -175,25 +175,28 @@ io.on('connection', function(socket) {
   io.to(socket.id).emit('user:connected', {"id": socket.id});
 
   socket.on('user:joined', function(data) {
+    log.info('user:joined', users, data);
+
     if(!users.hasOwnProperty(data.id) && data.role && data.role == "user") {
       users[data.id] = {};
       // emit to admin the number of conneted users
       if(admin["id"]) io.to(admin["id"]).emit('app:users', {"users:": users, "user_count": Object.keys(users).length});
     }
 
-    if(disconnected_users.hasOwnProperty(data.id)) {
-      log.info("Updating users:", users);
+    if(disconnected_users.hasOwnProperty(data.id) && data.role && data.role == "user") {
+      log.info("Reconnected User", "Updating users:", users);
       users[data.newid] = JSON.parse(JSON.stringify(disconnected_users[data.id]));
       io.to(data.newid).emit('user:updateId', {"id": data.newid});
       delete disconnected_users[data.id];
-      log.info("Users updated:", users);
+      delete users[data.id];
+      log.info("Reconnected User", "Users updated:", users);
     }
-    else if(users.hasOwnProperty(data.id) && !disconnected_users.hasOwnProperty(data.id)) {
-      log.info("Updating users:", users);
+    else if(users.hasOwnProperty(data.id) && !disconnected_users.hasOwnProperty(data.id)  && data.role && data.role == "user") {
+      log.info("Old User", "Updating users:", users);
       users[data.newid] = JSON.parse(JSON.stringify(users[data.id]));
       io.to(data.newid).emit('user:updateId', {"id": data.newid});
       delete users[data.id];
-      log.info("Users updated:", users);
+      log.info("Old User", "Old User", "Users updated:", users);
     }
 
     if(data.id && data.role && data.role == "user") {
@@ -209,12 +212,10 @@ io.on('connection', function(socket) {
       admin["id"] = data.id;
       io.to(admin["id"]).emit('map:show', {"state": appState.showmap});
     }
-    log.info(users, data);
-    io.to(data.id).emit('user:joined', data);
 
-    // if app was running and user reconnects update himm to run
-    if(data.id && appState.running)
-      io.to(data.id).emit('app:start', {"start": true, "startTime": startTime, "timer": counterTime, "paused": appState.paused});
+    // if app was running and user reconnects update him to run
+    if(data.newid && appState.running)
+      io.to(data.newid).emit('app:start', {"start": true, "startTime": startTime, "timer": counterTime, "paused": appState.paused});
 
     // keep activated map section on in map an c-ops after refresh
     if(data.role && (data.role == "c-ops" || data.role == "map")) {
@@ -232,13 +233,12 @@ io.on('connection', function(socket) {
     }
 
     // if user already unlocked and refresh update him to stay unlocked
-    if(users[data.id] && users[data.id]["locked"] === false) io.to(data.id).emit('app:password', {"valid": true});
+    if(users[data.newid] && users[data.newid]["locked"] === false) io.to(data.newid).emit('app:password', {"valid": true});
   });
 
   socket.on('map:unlock', function(data) {
     log.info('map:unlock', data);
     if(data.id && data.password && users[data.id]["countries"] != null) {
-      log.info(users, data);
       let valid = util.validatePassword(countries, data.password);
       let result = {};
       if(valid) {
@@ -248,24 +248,31 @@ io.on('connection', function(socket) {
         if(admin["id"]) io.to(admin["id"]).emit('map:unlock', result);
         setTimeout(function(){
           log.info("emit to", map["id"], 'map:unlock', result);
-          io.to(map["id"]).emit('map:unlock', result);
+          if(map["id"]) io.to(map["id"]).emit('map:unlock', result);
         }, waitTime);
       }
       setTimeout(function(){
         log.info("emit to", data.id, 'app:password', {"valid": valid});
         io.to(data.id).emit('app:password', {"valid": valid});
       }, waitTime);
+    } else {
+      setTimeout(function(){
+        log.info("emit to", data.id, 'app:password', {"valid": false});
+        if(data.id) io.to(data.id).emit('app:password', {"valid": false});
+      }, waitTime);
     }
+
   });
 
   socket.on('disconnect', function() {
-    log.info('disconnect', users, socket.id);
+    log.info('disconnect', socket.id, users);
     if (users[socket.id]) {
       disconnected_users[socket.id] = JSON.parse(JSON.stringify(users[socket.id]));
       delete users[socket.id];
       log.info('disconnect', 'removed user: ' + socket.id);
     }
     log.info('user disconnected', ' user: ' + socket.id);
+    log.info('disconnect', users);
     if(map["id"] == socket.id && admin["id"]) io.to(admin["id"]).emit('map:show', {"state": false});
     if(admin["id"]) io.to(admin["id"]).emit('app:users', {"users:": users, "user_count": Object.keys(users).length});
   });
