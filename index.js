@@ -18,9 +18,7 @@ const countries = require('./_lib/countries');
 
 const waitTime = 5000; // wait 5 seconds before sending password feedback
 
-let users = {};
-let map = {};
-let admin = {};
+let users = {}, disconnected_users = {}, map = {}, admin = {};
 let appState = {
   "running": false,
   "paused": false,
@@ -133,6 +131,7 @@ app.post('/showmap', function(req, res) {
 */
 app.post('/setMapTitle', function(req, res) {
   let data = req.body;
+  data = JSON.parse(JSON.stringify(data));
   io.to(map["id"]).emit('map:setTitle', data);
   res.status(200).json({"message": "Map title set to " + data.title});
 });
@@ -180,6 +179,26 @@ io.on('connection', function(socket) {
       users[data.id] = {};
       // emit to admin the number of conneted users
       if(admin["id"]) io.to(admin["id"]).emit('app:users', {"users:": users, "user_count": Object.keys(users).length});
+    }
+
+    if(disconnected_users.hasOwnProperty(data.id)) {
+      log.info("Updating users:", users);
+      users[data.newid] = JSON.parse(JSON.stringify(disconnected_users[data.id]));
+      io.to(data.newid).emit('user:updateId', {"id": data.newid});
+      delete disconnected_users[data.id];
+      log.info("Users updated:", users);
+    }
+    else if(users.hasOwnProperty(data.id) && !disconnected_users.hasOwnProperty(data.id)) {
+      log.info("Updating users:", users);
+      users[data.newid] = JSON.parse(JSON.stringify(users[data.id]));
+      io.to(data.newid).emit('user:updateId', {"id": data.newid});
+      delete users[data.id];
+      log.info("Users updated:", users);
+    }
+
+    if(data.id && data.role && data.role == "user") {
+      var timediff = new Date().getTime() - data.date;
+      io.to(data.newid).emit('user:timediff', {"timediff": timediff});
     }
 
     if(data.role && data.role == "map") {
@@ -240,8 +259,12 @@ io.on('connection', function(socket) {
   });
 
   socket.on('disconnect', function() {
-    log.info(users, socket.id);
-    delete users[socket.id]
+    log.info('disconnect', users, socket.id);
+    if (users[socket.id]) {
+      disconnected_users[socket.id] = JSON.parse(JSON.stringify(users[socket.id]));
+      delete users[socket.id];
+      log.info('disconnect', 'removed user: ' + socket.id);
+    }
     log.info('user disconnected', ' user: ' + socket.id);
     if(map["id"] == socket.id && admin["id"]) io.to(admin["id"]).emit('map:show', {"state": false});
     if(admin["id"]) io.to(admin["id"]).emit('app:users', {"users:": users, "user_count": Object.keys(users).length});

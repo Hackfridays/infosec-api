@@ -6,6 +6,7 @@ function init() {
   var countries_state = [];
 
   $('.infobar-peace').hide();
+  $('.main-wrapper').hide();
 
   socket.on('user:connected', function(data) {
     console.log('user:connected', data);
@@ -17,6 +18,7 @@ function init() {
   socket.on('app:start', function(data) {
     console.log('app:start', data);
     resetMap();
+    window.requestAnimationFrame(erraticPasswords);
     for (var n=1; n<11; n++)
       setTimeout(function(n){ $('.partials #p'+n).addClass('glow'); }, Math.round(Math.random()*4000), n);
   });
@@ -96,12 +98,14 @@ function init() {
   function showMap(show) {
     if(show) {
       $('.disconnected').hide();
+      $('.main-wrapper').show();
     } else {
       $('.disconnected').show();
+      $('.main-wrapper').hide();
     }
   }
 
-  setInterval(function() {
+  function erraticPasswords() {
   	// erratic
   	if (Math.round(Math.random())) {
   		// erase
@@ -113,12 +117,10 @@ function init() {
       var html = "<div class='snippet' style='left:" + (Math.random()*98) + "%; top:" + Math.round(margin+Math.random()*height) + "px;'>" + Math.random().toString(36).substring(2, 12) + "</div>";
   		$('#random-' + (Math.round(Math.random()) ? 'a' : 'b')).append(html);
   	}
-  }, 150);
+    window.requestAnimationFrame(erraticPasswords);
+  }
 
   // showMap(true);
-  for (var n=1; n<11; n++)
-    setTimeout(function(n){ $('.partials #p'+n).addClass('glow'); }, Math.round(Math.random()*4000), n);
-
 }
 
 window.onload = function() {
