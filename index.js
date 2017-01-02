@@ -277,7 +277,7 @@ io.on('connection', function(socket) {
     }
     log.info('user disconnected', ' user: ' + socket.id);
     log.info('disconnect', users);
-    if(map["id"] == socket.id && admin["id"]) io.to(admin["id"]).emit('map:show', {"state": false});
+    if(map["id"] == socket.id && admin["id"]) io.to(admin["id"]).emit('map:show', {"state": appState.showmap});
     if(admin["id"]) io.to(admin["id"]).emit('app:users', {"users:": users, "user_count": Object.keys(users).length});
   });
 });
