@@ -61,9 +61,13 @@ function init() {
     }) + 1;
     if (state)	{
       $('#p' + index).attr('src', '/img/blue-' + index + '.png');
+      var audio = new Audio('./sounds/unlock.mp3');
+      audio.play();
       if(countries_state.length < 10) countries_state.push(1);
     } else {
       $('#p' + index).attr('src', './img/red-' + index + '.png');
+      var audio = new Audio('./sounds/lock.mp3');
+      audio.play();
       countries_state.pop();
     }
 
