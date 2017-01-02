@@ -61,7 +61,7 @@ app.get('/start', function(req, res) {
     io.emit('app:start', {"start": true, "startTime": startTime, "timer": counterTime, "paused": appState.paused});
     res.status(200).json({"message": "Countdown started.", "started": true});
   } else {
-    res.status(500).json({"message": "Not enough or to many users connected.", "started": false});
+    res.status(500).json({"message": "Not enough or too many users connected.", "started": false});
   }
 });
 
