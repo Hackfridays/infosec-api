@@ -206,6 +206,7 @@ io.on('connection', function(socket) {
 
     if(data.role && data.role == "map") {
       map["id"] = data.id;
+      io.to(map["id"]).emit('map:show', {"state": appState.showmap});
     }
 
     if(data.role && data.role == "c-ops") {
