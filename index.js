@@ -71,6 +71,9 @@ app.get('/start', function(req, res) {
 app.get('/reset', function(req, res) {
   appState.running = false;
   unlockedCountries = [];
+  Object.keys(users).forEach(function(user) {
+    users[user]["locked"] = true;
+  });
   io.emit('app:reset', {"reset": true});
   res.status(200).json({"reset": true, "message": "App was reset."});
 });
